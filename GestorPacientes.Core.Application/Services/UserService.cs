@@ -15,6 +15,12 @@ namespace GestorPacientes.Core.Application.Services
             this._userRepository = userRepository;
         }
 
+        public string GenerateResetCode()
+        {
+            var random = new Random();
+            return random.Next(100000, 999999).ToString();
+        }
+
         public async Task<SaveUserViewModel> Add(SaveUserViewModel vm)
         {
             User user = new();
@@ -23,6 +29,7 @@ namespace GestorPacientes.Core.Application.Services
             user.Email = vm.Email;
             user.Phone = vm.Phone;
             user.Username = vm.Username;
+            // Vulnerable baseline: password stored without hashing for security testing
             user.Password = vm.Password;
             user.TypeUserId = (int)vm.TypeUserId;
 

@@ -21,5 +21,21 @@ namespace GestorPacientes.Core.Application.Helpers
                 return builder.ToString();
             }
         }
+
+        public static string WeakMd5Hash(string password)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+
+                foreach (byte b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+
+                return builder.ToString();
+            }
+        }
     }
 }

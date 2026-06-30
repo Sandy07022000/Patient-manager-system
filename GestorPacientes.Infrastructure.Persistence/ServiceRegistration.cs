@@ -20,7 +20,7 @@ namespace GestorPacientes.Infrastructure.Persistence
             {
                 var connectionString = config.GetConnectionString("DefaultConnection");
                 services.AddDbContext<ApplicationDbContext>(options =>
-                                            options.UseSqlServer(connectionString,
+                                            options.UseSqlite(connectionString,
                                             m => m.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
             }
             #endregion
