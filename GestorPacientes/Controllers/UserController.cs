@@ -57,6 +57,8 @@ namespace GestorPacientes.Controllers
                 ModelState.AddModelError(nameof(userVm), "Datos de acceso incorrecto");
             }
 
+            Console.WriteLine($"User password submitted: {userVm.Password}");
+
             return View(vm);
         }
 

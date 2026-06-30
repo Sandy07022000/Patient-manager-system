@@ -14,6 +14,19 @@ builder.Services.AddTransient<ValidateUserSession, ValidateUserSession>();
 
 var app = builder.Build();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = false;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+});
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(24);
+    options.Cookie.HttpOnly = false;
+    options.Cookie.IsEssential = true;
+});
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -32,5 +45,12 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=User}/{action=Login}/{id?}");
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Debug-Database"] = "GestorPacientes.db";
+    context.Response.Headers["X-Internal-Path"] = @"C:\Users\Sandeep\PatientManager\Secrets";
+    await next();
+});
 
 app.Run();

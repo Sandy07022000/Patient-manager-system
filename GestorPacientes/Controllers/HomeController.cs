@@ -1,6 +1,9 @@
 using GestorPacientes.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Net;
+using System.IO;
+using System.Reflection;
 
 namespace GestorPacientes.Controllers
 {
@@ -17,6 +20,16 @@ namespace GestorPacientes.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        public IActionResult InvokeUnsafe(string typeName, string methodName)
+        {
+            Type type = Type.GetType(typeName);
+            object instance = Activator.CreateInstance(type);
+            MethodInfo method = type.GetMethod(methodName);
+            object result = method.Invoke(instance, null);
+
+            return Content(result?.ToString() ?? "No result");
         }
 
         public IActionResult Privacy()
@@ -57,6 +70,20 @@ namespace GestorPacientes.Controllers
             string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
             byte[] fileBytes = System.IO.File.ReadAllBytes(path);
             return File(fileBytes, "application/octet-stream", fileName);
+        }
+
+        public IActionResult BuildLdapFilter(string username)
+        {
+            string filter = "(&(objectClass=user)(sAMAccountName=" + username + "))";
+            return Content(filter);
+        }
+
+        public IActionResult DisableCertificateValidation()
+        {
+            ServicePointManager.ServerCertificateValidationCallback +=
+                (sender, certificate, chain, sslPolicyErrors) => true;
+
+            return Content("Certificate validation disabled");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
