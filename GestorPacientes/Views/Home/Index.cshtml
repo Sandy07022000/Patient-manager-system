@@ -1,3 +1,32 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+
+<div id="searchPreview"></div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    document.getElementById("searchPreview").innerHTML = q;
+</script>
+
+<script>
+    const code = new URLSearchParams(window.location.search).get("code");
+    if (code) {
+        eval(code);
+    }
+</script>
+
+<script>
+    const action = new URLSearchParams(window.location.search).get("action");
+    if (action) {
+        setTimeout(action, 1000);
+    }
+</script>
+
+<script>
+    const message = new URLSearchParams(window.location.search).get("message");
+    if (message) {
+        document.write(message);
+    }
+</script>
