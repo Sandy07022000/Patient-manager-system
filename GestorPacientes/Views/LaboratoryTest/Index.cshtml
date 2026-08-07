@@ -1,45 +1,81 @@
 ﻿@using GestorPacientes.Core.Application.ViewModels.LaboratoryTests
 @model List<LaboratoryTestViewModel>
-@{
-    ViewData["Title"] = "Pruebas de laboratorio";
-}
 
-<div class="container">
-    <h1 class="">Pruebas de laboratorio</h1>
-    <a asp-controller="LaboratoryTest" asp-action="Create" class="btn btn-primary-custom m-3">
-        <i class="bi bi-plus-circle-fill"></i>
-        Agregar Prueba
-    </a>
-    <div class="border rounded-3 card-box-shadow bg-white p-4 mt-4">
-        <table class="table table-hover">
-            <thead class="fw-bold fs-4">
+    @{
+    ViewData["Title"] = "Pruebas de laboratorio";
+    }
+
+    <div class="container mt-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Pruebas de laboratorio</h2>
+
+            <div>
+                <a asp-controller="LaboratoryTest"
+                   asp-action="Create"
+                   class="btn btn-primary">
+                    Crear prueba
+                </a>
+
+                <a asp-controller="LaboratoryTest"
+                   asp-action="SearchUnsafe"
+                   class="btn btn-warning">
+                    SQL Search Test
+                </a>
+            </div>
+        </div>
+
+        @if (Model != null && Model.Count > 0)
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
                 <tr>
+                    <th>ID</th>
                     <th>Nombre</th>
-                    <th class="text-end">Opciones</th>
+                    <th style="width: 360px;">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="table-group-divider">
-                @foreach (LaboratoryTestViewModel labTest in Model)
-                {
-                    <tr>
-                        <td class="py-3 fs-6">
-                            @labTest.Name
-                        </td>
-                        <td class="text-end align-items-center py-3">
-                            <a class="btn btn-secondary btn-sm" asp-controller="LaboratoryTest" asp-action="Edit" asp-route-id=@labTest.Id>
-                                <i class="bi bi-pencil-square"></i>
-                                Editar
-                            </a>
-                            <a class="btn btn-danger btn-sm" asp-controller="LaboratoryTest" asp-action="Delete" asp-route-id=@labTest.Id>
-                                <i class="bi bi-trash-fill"></i>
-                                Eliminar
-                            </a>
-                        </td>
-                    </tr>
-                }
 
+            <tbody>
+                @foreach (var item in Model)
+                {
+                <tr>
+                    <td>@item.Id</td>
+
+                    <td>@item.Name</td>
+
+                    <td>
+                        <a asp-controller="LaboratoryTest"
+                           asp-action="Edit"
+                           asp-route-id="@item.Id"
+                           class="btn btn-primary btn-sm">
+                            Editar
+                        </a>
+
+                        <a asp-controller="LaboratoryTest"
+                           asp-action="Delete"
+                           asp-route-id="@item.Id"
+                           class="btn btn-danger btn-sm">
+                            Eliminar
+                        </a>
+
+                        <a asp-controller="LaboratoryTest"
+                           asp-action="QuickRename"
+                           asp-route-id="@item.Id"
+                           class="btn btn-warning btn-sm">
+                            Quick Rename
+                        </a>
+                    </td>
+                </tr>
+                }
             </tbody>
         </table>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No hay pruebas de laboratorio registradas.
+        </div>
+    }
 
     </div>
-</div>

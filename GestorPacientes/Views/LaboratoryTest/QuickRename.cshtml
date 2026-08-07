@@ -1,0 +1,53 @@
+@model GestorPacientes.Core.Application.ViewModels.LaboratoryTests.SaveLaboratoryTestViewModel
+
+@{
+    ViewData["Title"] = "Quick Rename";
+}
+
+<div class="container mt-4">
+    <h2>Quick Rename Laboratory Test</h2>
+
+    <p class="text-muted">
+        Rename the selected laboratory test.
+    </p>
+
+    @*
+        Deliberately vulnerable plain HTML form.
+
+        Do not change this to:
+        <form asp-controller="..." asp-action="..." method="post">
+
+        ASP.NET Core tag helpers can automatically generate
+        an anti-forgery token for POST forms.
+    *@
+
+    <form method="post"
+          action="/LaboratoryTest/QuickRename">
+
+        <input type="hidden"
+               name="id"
+               value="@Model.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">
+                Laboratory test name
+            </label>
+
+            <input type="text"
+                   name="name"
+                   value="@Model.Name"
+                   class="form-control" />
+        </div>
+
+        <button type="submit"
+                class="btn btn-danger">
+            Rename without CSRF protection
+        </button>
+
+        <a asp-controller="LaboratoryTest"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>

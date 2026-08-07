@@ -1,0 +1,52 @@
+@model List<GestorPacientes.Core.Application.ViewModels.LaboratoryTests.LaboratoryTestViewModel>
+
+@{
+    ViewData["Title"] = "Laboratory Test Search";
+}
+
+<div class="container mt-4">
+    <h2>Laboratory Test Search</h2>
+
+    <form method="get"
+          asp-controller="LaboratoryTest"
+          asp-action="SearchUnsafe">
+
+        <div class="input-group mb-4">
+            <input type="text"
+                   name="name"
+                   class="form-control"
+                   placeholder="Enter laboratory test name"
+                   value="@Context.Request.Query["name"]" />
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Search
+            </button>
+        </div>
+    </form>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Test name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var test in Model)
+                {
+                    <tr>
+                        <td>@test.Id</td>
+                        <td>@test.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No laboratory tests found.</p>
+    }
+</div>

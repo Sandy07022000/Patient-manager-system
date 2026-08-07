@@ -112,5 +112,71 @@ namespace GestorPacientes.Controllers
             await _labTestService.Delete(id);
             return RedirectToRoute(new { controller = "LaboratoryTest", action = "Index" });
         }
+        [HttpGet]
+        public async Task<IActionResult> QuickRename(int id)
+        {
+            if (!_validateUserSession.HasUser() ||
+                userViewModel.TypeUserId != Roles.Admin)
+            {
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "Index"
+                });
+            }
+
+            var laboratoryTest =
+                await _labTestService.GetByIdSaveViewModel(id);
+
+            return View(laboratoryTest);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> QuickRename(
+            int id,
+            string name)
+        {
+            if (!_validateUserSession.HasUser() ||
+                userViewModel.TypeUserId != Roles.Admin)
+            {
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "Index"
+                });
+            }
+
+            var laboratoryTest =
+                await _labTestService.GetByIdSaveViewModel(id);
+
+            laboratoryTest.Name = name;
+
+            await _labTestService.Update(laboratoryTest);
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchUnsafe(string name)
+        {
+            if (!_validateUserSession.HasUser() ||
+                userViewModel.TypeUserId != Roles.Admin)
+            {
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "Index"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return View(new List<LaboratoryTestViewModel>());
+            }
+
+            var results = await _labTestService.SearchUnsafe(name);
+
+            return View(results);
+        }
     }
 }

@@ -1,0 +1,72 @@
+@{
+    ViewData["Title"] = "JSON Deserialization";
+
+    string jsonContent =
+        ViewBag.JsonContent as string ?? string.Empty;
+
+    string resultType =
+        ViewBag.ResultType as string ?? string.Empty;
+
+    string result =
+        ViewBag.Result as string ?? string.Empty;
+
+    string error =
+        ViewBag.Error as string ?? string.Empty;
+}
+
+<div class="container mt-4">
+    <h2>JSON Deserialization</h2>
+
+    <p class="text-muted">
+        Enter JSON data for the application to deserialize.
+    </p>
+
+    <form method="post"
+          asp-controller="Home"
+          asp-action="DeserializeData">
+
+        <div class="mb-3">
+            <label class="form-label">
+                JSON content
+            </label>
+
+            <textarea name="jsonContent"
+                      class="form-control"
+                      rows="12"
+                      placeholder='{"Name":"Patient record"}'>@jsonContent</textarea>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Deserialize
+        </button>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+    <div class="alert alert-danger mt-4">
+        @error
+    </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(resultType))
+    {
+    <div class="card mt-4">
+        <div class="card-header">
+            Deserialization result
+        </div>
+
+        <div class="card-body">
+            <p>
+                <strong>Created type:</strong>
+                @resultType
+            </p>
+
+            <p>
+                <strong>Result:</strong>
+                @result
+            </p>
+        </div>
+    </div>
+    }
+</div>

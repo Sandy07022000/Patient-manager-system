@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "LDAP User Search";
+
+    string username =
+        ViewBag.Username as string ?? string.Empty;
+
+    string filter =
+        ViewBag.Filter as string ?? string.Empty;
+
+    string message =
+        ViewBag.Message as string ?? string.Empty;
+
+    string error =
+        ViewBag.Error as string ?? string.Empty;
+}
+
+<div class="container mt-4">
+    <h2>LDAP User Search</h2>
+
+    <form method="post"
+          asp-controller="Home"
+          asp-action="LdapSearch">
+
+        <div class="input-group mb-3">
+            <input type="text"
+                   name="username"
+                   value="@username"
+                   class="form-control"
+                   placeholder="Enter username" />
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Build LDAP Request
+            </button>
+        </div>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+    <div class="alert alert-danger">
+        @error
+    </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+    <div class="alert alert-warning">
+        @message
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Generated LDAP filter
+        </div>
+
+        <div class="card-body">
+            <code>@filter</code>
+        </div>
+    </div>
+    }
+</div>

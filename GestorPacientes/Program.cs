@@ -2,6 +2,7 @@ using GestorPacientes.Infrastructure.Persistence;
 using GestorPacientes.Core.Application;
 using GestorPacientes.Middlewares;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,8 +12,6 @@ builder.Services.AddApplicationLayer();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<ValidateUserSession, ValidateUserSession>();
-
-var app = builder.Build();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -27,6 +26,21 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// Deliberately insecure CORS configuration for controlled testing.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("UnsafeCorsPolicy", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build();
+
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -39,7 +53,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseCors("UnsafeCorsPolicy");
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "External URL Fetcher";
+
+    string targetUrl =
+        ViewBag.TargetUrl as string ?? string.Empty;
+
+    string responseBody =
+        ViewBag.ResponseBody as string ?? string.Empty;
+
+    string error =
+        ViewBag.Error as string ?? string.Empty;
+}
+
+<div class="container mt-4">
+    <h2>External URL Fetcher</h2>
+
+    <p class="text-muted">
+        Enter a URL for the application server to retrieve.
+    </p>
+
+    <form method="post"
+          asp-controller="Home"
+          asp-action="FetchUrl">
+
+        <div class="input-group mb-3">
+            <input type="text"
+                   name="targetUrl"
+                   value="@targetUrl"
+                   class="form-control"
+                   placeholder="http://localhost:5158/Home/Privacy" />
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Fetch
+            </button>
+        </div>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="alert alert-danger">
+            @error
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(responseBody))
+    {
+        <div class="card mt-4">
+            <div class="card-header">
+                Response from: @targetUrl
+            </div>
+
+            <div class="card-body">
+                <pre style="white-space: pre-wrap; max-height: 500px; overflow: auto;">@responseBody</pre>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "XML Import";
+
+    string xmlContent =
+        ViewBag.XmlContent as string ?? string.Empty;
+
+    string parsedValue =
+        ViewBag.ParsedValue as string ?? string.Empty;
+
+    string error =
+        ViewBag.Error as string ?? string.Empty;
+}
+
+<div class="container mt-4">
+    <h2>XML Import</h2>
+
+    <form method="post"
+          asp-controller="Home"
+          asp-action="XmlImport">
+
+        <div class="mb-3">
+            <label class="form-label">
+                XML content
+            </label>
+
+            <textarea name="xmlContent"
+                      class="form-control"
+                      rows="12"
+                      placeholder="<patient><name>Sandeep</name></patient>">@xmlContent</textarea>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Parse XML
+        </button>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+    <div class="alert alert-danger mt-4">
+        @error
+    </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(parsedValue))
+    {
+    <div class="card mt-4">
+        <div class="card-header">
+            Parsed XML value
+        </div>
+
+        <div class="card-body">
+            <pre>@parsedValue</pre>
+        </div>
+    </div>
+    }
+</div>

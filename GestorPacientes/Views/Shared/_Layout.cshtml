@@ -1,97 +1,283 @@
-﻿@using Microsoft.AspNetCore.Http;
-@using GestorPacientes.Core.Application.Helpers;
-@using GestorPacientes.Core.Application.Enums;
-@using GestorPacientes.Core.Application.ViewModels.Users;
-@inject IHttpContextAccessor httpContextAccessor;
+﻿@using Microsoft.AspNetCore.Http
+@using GestorPacientes.Core.Application.Helpers
+@using GestorPacientes.Core.Application.Enums
+@using GestorPacientes.Core.Application.ViewModels.Users
+
+@inject IHttpContextAccessor httpContextAccessor
+
 @{
-    var User = httpContextAccessor.HttpContext.Session.Get<UserViewModel>("user");
+    UserViewModel? currentUser =
+        httpContextAccessor.HttpContext?.Session.Get<UserViewModel>("user");
 }
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"] - GestorPacientes</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/GestorPacientes.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="~/css/custom.css" asp-append-version="true" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/GestorPacientes.styles.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/custom.css"
+          asp-append-version="true" />
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+          rel="stylesheet" />
 </head>
+
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm bg-body-tertiary rounded navbar-light bg-white border-bottom box-shadow mb-3" aria-label="Thirteenth navbar example">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3"
+             aria-label="Main navigation">
+
             <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample11" aria-controls="navbarsExample11" aria-expanded="false" aria-label="Toggle navigation">
+
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarsExample11"
+                        aria-controls="navbarsExample11"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse d-lg-flex" id="navbarsExample11">
-                    <a class="navbar-brand fw-bold fs-5 col-lg-3 me-0" asp-area="" asp-controller="@(User != null ? "Home" : "User")" asp-action="@(User != null ? "Index" : "Login")">
+                <div class="collapse navbar-collapse d-lg-flex"
+                     id="navbarsExample11">
+
+                    <a class="navbar-brand fw-bold fs-5 col-lg-3 me-0"
+                       asp-area=""
+                       asp-controller="@(currentUser != null ? "Home" : "User")"
+                       asp-action="@(currentUser != null ? "Index" : "Login")">
+
                         <i class="bi bi-hospital-fill"></i>
                         Gestor Pacientes
                     </a>
-                    @if (User != null)
-                    {
-                        <ul class="navbar-nav col-lg-6 justify-content-lg-center">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
-                            </li>
-                            @if (User.TypeUserId == Roles.Admin)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Index">Mantenimiento de Usuarios</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="LaboratoryTest" asp-action="Index">Pruebas de laboratorio</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Doctor" asp-action="Index">Medicos</a>
-                                </li>
-                            }
-                            else if (User.TypeUserId == Roles.Assistant)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Patient" asp-action="Index">Pacientes</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="LaboratoryResult" asp-action="Index">Resultados de laboratorios</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Appointment" asp-action="Index">Citas</a>
-                                </li>
 
-                            }
-                        </ul>
-                        <partial name="_LinksLogin" for="@User" />
-@*                         <div class="d-lg-flex col-lg-3 justify-content-lg-end">
-                            <a class="btn btn-danger btn-sm" asp-controller="User" asp-action="LogOut">
-                                Cerrar Sesion
+                    @if (currentUser != null)
+                    {
+                    <ul class="navbar-nav col-lg-6 justify-content-lg-center">
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="Index">
+                                Inicio
                             </a>
-                        </div> *@
+                        </li>
+
+                        @* Added for reflected-XSS testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="SearchPreview">
+                                Search Preview
+                            </a>
+                        </li>
+
+                        @* Added for SSRF testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="FetchUrl">
+                                URL Fetcher
+                            </a>
+                        </li>
+
+                        @* Added for redirect test testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="RedirectTest">
+                                Redirect Test
+                            </a>
+                        </li>
+
+                        @* Added for ldap testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="LdapSearch">
+                                LDAP Search
+                            </a>
+                        </li>
+
+                        @* Added for xml import testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="XmlImport">
+                                XML Import
+                            </a>
+                        </li>
+
+                        @* Added for json import testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="DeserializeData">
+                                JSON Deserialize
+                            </a>
+                        </li>
+
+                        @* Added for login audit testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="LoginAudit">
+                                Login Audit
+                            </a>
+                        </li>
+
+                        @* Added for data encrypt testing *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="EncryptPatientData">
+                                Data Encryption
+                            </a>
+                        </li>
+
+                        @if (currentUser.TypeUserId == Roles.Admin)
+                            {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="User"
+                               asp-action="Index">
+                                Mantenimiento de Usuarios
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="LaboratoryTest"
+                               asp-action="Index">
+                                Pruebas de laboratorio
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Doctor"
+                               asp-action="Index">
+                                Medicos
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="LaboratoryTest"
+                               asp-action="SearchUnsafe">
+                                SQL Search Test
+                            </a>
+                        </li>
+                            }
+                            else if (currentUser.TypeUserId == Roles.Assistant)
+                            {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Patient"
+                               asp-action="Index">
+                                Pacientes
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="LaboratoryResult"
+                               asp-action="Index">
+                                Resultados de laboratorios
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Appointment"
+                               asp-action="Index">
+                                Citas
+                            </a>
+                        </li>
+                            }
+                    </ul>
+
+                    <div class="col-lg-3 d-flex justify-content-lg-end">
+                        <partial name="_LinksLogin"
+                                 model="@currentUser" />
+                    </div>
                     }
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container-fluid">
-        <main role="main" class="pb-3">
+        <main role="main"
+              class="pb-3">
+
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - GestorPacientes - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2024 - GestorPacientes -
+
+            <a asp-area=""
+               asp-controller="Home"
+               asp-action="Privacy">
+                Privacy
+            </a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Search Preview";
+    string searchQuery = ViewBag.SearchQuery as string ?? string.Empty;
+}
+
+<div class="container mt-4">
+    <h2>Search Preview</h2>
+
+    <form method="get"
+          asp-controller="Home"
+          asp-action="SearchPreview">
+
+        <div class="input-group mb-4">
+            <input type="text"
+                   name="q"
+                   value="@searchQuery"
+                   class="form-control"
+                   placeholder="Enter a search value" />
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Preview
+            </button>
+        </div>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+    <div class="alert alert-secondary">
+        Search result:
+        @Html.Raw(searchQuery)
+    </div>
+    }
+</div>

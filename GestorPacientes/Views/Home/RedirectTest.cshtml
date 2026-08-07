@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Redirect Test";
+}
+
+<div class="container mt-4">
+    <h2>Redirect Test</h2>
+
+    <p class="text-muted">
+        Enter a destination URL.
+    </p>
+
+    <form method="get"
+          asp-controller="Home"
+          asp-action="GoTo">
+
+        <div class="input-group mb-3">
+            <input type="text"
+                   name="returnUrl"
+                   class="form-control"
+                   placeholder="/Home/Privacy" />
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Continue
+            </button>
+        </div>
+    </form>
+</div>

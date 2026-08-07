@@ -65,5 +65,16 @@ namespace GestorPacientes.Core.Application.Services
             }).ToList();
         }
 
+        public async Task<List<LaboratoryTestViewModel>> SearchUnsafe(string name)
+        {
+            var list = await _labTestRepository.SearchUnsafe(name);
+
+            return list.Select(labTest => new LaboratoryTestViewModel
+            {
+                Id = labTest.Id,
+                Name = labTest.Name
+            }).ToList();
+        }
+
     }
 }
