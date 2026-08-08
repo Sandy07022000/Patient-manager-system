@@ -42,7 +42,8 @@
                 <tr>
                     <td>@item.Id</td>
 
-                    <td>@item.Name</td>
+                    <!-- Deliberately unsafe rendering for controlled security testing -->
+                    <td>@Html.Raw(item.Name)</td>
 
                     <td>
                         <a asp-controller="LaboratoryTest"
