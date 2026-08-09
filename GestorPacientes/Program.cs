@@ -84,6 +84,36 @@ app.Use(async (context, next) =>
 });
 
 // ----------------------------------------------------
+// Restrict unsupported HTTP methods
+// ----------------------------------------------------
+
+app.Use(async (context, next) =>
+{
+    string method = context.Request.Method;
+
+    bool allowedMethod =
+        HttpMethods.IsGet(method) ||
+        HttpMethods.IsPost(method) ||
+        HttpMethods.IsHead(method) ||
+        HttpMethods.IsOptions(method);
+
+    if (!allowedMethod)
+    {
+        context.Response.StatusCode =
+            StatusCodes.Status405MethodNotAllowed;
+
+        context.Response.Headers.Allow =
+            "GET, POST, HEAD, OPTIONS";
+
+        await context.Response.WriteAsync(
+            "HTTP method not allowed.");
+
+        return;
+    }
+
+    await next();
+});
+// ----------------------------------------------------
 // HTTP request pipeline
 // ----------------------------------------------------
 

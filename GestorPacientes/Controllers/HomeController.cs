@@ -10,6 +10,7 @@ using System.Text;
 using System.Xml;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
+using GestorPacientes.Middlewares;
 
 namespace GestorPacientes.Controllers
 {
@@ -18,15 +19,17 @@ namespace GestorPacientes.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
         private const string ExternalHealthApiKey = "HARDCODED_HEALTH_API_KEY_123456";
+        private readonly ValidateUserSession _validateUserSession;
 
         public HomeController(
     ILogger<HomeController> logger,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    ValidateUserSession validateUserSession)
         {
             _logger = logger;
             _configuration = configuration;
+            _validateUserSession = validateUserSession;
         }
-
 
         public IActionResult Index()
         {
@@ -104,6 +107,15 @@ namespace GestorPacientes.Controllers
 
         public IActionResult PingHost(string host)
         {
+            if (!_validateUserSession.HasUser())
+            {
+                return RedirectToRoute(new
+                {
+                    controller = "User",
+                    action = "Login"
+                });
+            }
+
             if (string.IsNullOrWhiteSpace(host))
             {
                 return BadRequest("Host is required.");
@@ -145,7 +157,9 @@ namespace GestorPacientes.Controllers
             return View();
         }
 
+        
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> FetchUrl(string targetUrl)
         {
             if (string.IsNullOrWhiteSpace(targetUrl))
@@ -299,6 +313,7 @@ namespace GestorPacientes.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult LdapSearch(string username)
         {
             if (string.IsNullOrWhiteSpace(username))
@@ -334,6 +349,7 @@ namespace GestorPacientes.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult XmlImport(string xmlContent)
         {
             if (string.IsNullOrWhiteSpace(xmlContent))
@@ -381,6 +397,7 @@ namespace GestorPacientes.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult DeserializeData(string jsonContent)
         {
             if (string.IsNullOrWhiteSpace(jsonContent))
@@ -426,7 +443,9 @@ namespace GestorPacientes.Controllers
             return View();
         }
 
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult LoginAudit(
      string username,
      string password,
@@ -458,6 +477,7 @@ namespace GestorPacientes.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult EncryptPatientData(string patientData)
         {
             if (string.IsNullOrWhiteSpace(patientData))

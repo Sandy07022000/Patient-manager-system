@@ -44,57 +44,39 @@ namespace GestorPacientes.Infrastructure.Persistence.Repositories
                 return null;
             }
 
-            // First try the new secure password format.
+            PasswordVerificationResult result;
+
             try
             {
-                PasswordVerificationResult result =
+                result =
                     _passwordHasher.VerifyHashedPassword(
                         user,
                         user.Password,
                         loginVm.Password);
-
-                if (result == PasswordVerificationResult.Success ||
-                    result == PasswordVerificationResult.SuccessRehashNeeded)
-                {
-                    if (result ==
-                        PasswordVerificationResult.SuccessRehashNeeded)
-                    {
-                        user.Password =
-                            _passwordHasher.HashPassword(
-                                user,
-                                loginVm.Password);
-
-                        await _dbContext.SaveChangesAsync();
-                    }
-
-                    return user;
-                }
             }
             catch (FormatException)
             {
-                // Existing legacy hashes are checked below.
+                // Legacy or invalid password hashes are no longer accepted.
+                return null;
             }
 
-            // Temporary migration support for existing SHA-256 accounts.
-            string legacyHash =
-                PasswordEncryptation.ComputeSha256Hash(
-                    loginVm.Password);
-
-            if (user.Password == legacyHash)
+            if (result == PasswordVerificationResult.Failed)
             {
-                // Password was correct using legacy SHA-256.
-                // Immediately upgrade it to the secure password hash.
+                return null;
+            }
+
+            if (result == PasswordVerificationResult.SuccessRehashNeeded)
+            {
                 user.Password =
                     _passwordHasher.HashPassword(
                         user,
                         loginVm.Password);
 
                 await _dbContext.SaveChangesAsync();
-
-                return user;
             }
 
-            return null;
+            return user;
         }
+
     }
 }

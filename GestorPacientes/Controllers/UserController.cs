@@ -34,6 +34,7 @@ namespace GestorPacientes.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel vm)
         {
             if (_validateUserSession.HasUser())
@@ -86,6 +87,7 @@ namespace GestorPacientes.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Register(SaveUserViewModel userVm)
         {
             // Block direct POST requests to the old
@@ -110,6 +112,7 @@ namespace GestorPacientes.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SaveUserViewModel userVm)
         {
             if (!_validateUserSession.HasUser() ||
@@ -148,6 +151,7 @@ namespace GestorPacientes.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(SaveUserViewModel vm)
         {
             if (!_validateUserSession.HasUser() || userViewModel.TypeUserId != Roles.Admin)
@@ -174,6 +178,7 @@ namespace GestorPacientes.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteUser(int id)
         {
             if (!_validateUserSession.HasUser() || userViewModel.TypeUserId != Roles.Admin)
