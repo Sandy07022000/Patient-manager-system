@@ -6,7 +6,6 @@ using System.IO;
 using System.Reflection;
 using System.Net.Http;
 using System.DirectoryServices.Protocols;
-using System.Net;
 using System.Text;
 using System.Xml;
 using Newtonsoft.Json;
@@ -17,12 +16,17 @@ namespace GestorPacientes.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IConfiguration _configuration;
         private const string ExternalHealthApiKey = "HARDCODED_HEALTH_API_KEY_123456";
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(
+    ILogger<HomeController> logger,
+    IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
         }
+
 
         public IActionResult Index()
         {
@@ -31,12 +35,31 @@ namespace GestorPacientes.Controllers
 
         public IActionResult InvokeUnsafe(string typeName, string methodName)
         {
-            Type type = Type.GetType(typeName);
-            object instance = Activator.CreateInstance(type);
-            MethodInfo method = type.GetMethod(methodName);
-            object result = method.Invoke(instance, null);
+            if (string.IsNullOrWhiteSpace(typeName) ||
+                string.IsNullOrWhiteSpace(methodName))
+            {
+                return BadRequest("Type and method are required.");
+            }
 
-            return Content(result?.ToString() ?? "No result");
+            var allowedOperations =
+                new Dictionary<string, Func<string>>
+                {
+                    ["System.DateTime:GetCurrentDate"] =
+                        () => DateTime.UtcNow.ToString("yyyy-MM-dd")
+                };
+
+            string operationKey =
+                $"{typeName}:{methodName}";
+
+            if (!allowedOperations.TryGetValue(
+                    operationKey,
+                    out var operation))
+            {
+                return BadRequest(
+                    "Requested operation is not allowed.");
+            }
+
+            return Content(operation());
         }
 
         public IActionResult Privacy()
@@ -44,10 +67,76 @@ namespace GestorPacientes.Controllers
             return View();
         }
 
+        private static string EscapeLdapFilterValue(string value)
+        {
+            if (value == null)
+                return string.Empty;
+
+            return value
+                .Replace("\\", "\\5c")
+                .Replace("*", "\\2a")
+                .Replace("(", "\\28")
+                .Replace(")", "\\29")
+                .Replace("\0", "\\00");
+        }
+
+        private static bool IsPrivateIp(IPAddress ip)
+        {
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                byte[] bytes = ip.GetAddressBytes();
+
+                return bytes[0] == 10 ||
+                       (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
+                       (bytes[0] == 192 && bytes[1] == 168) ||
+                       (bytes[0] == 169 && bytes[1] == 254);
+            }
+
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                return ip.IsIPv6LinkLocal ||
+                       ip.IsIPv6SiteLocal ||
+                       ip.IsIPv6UniqueLocal;
+            }
+
+            return false;
+        }
+
         public IActionResult PingHost(string host)
         {
-            Process.Start("cmd.exe", "/c ping " + host);
-            return Content("Ping command executed");
+            if (string.IsNullOrWhiteSpace(host))
+            {
+                return BadRequest("Host is required.");
+            }
+
+            if (!System.Net.IPAddress.TryParse(host, out _))
+            {
+                return BadRequest("Only valid IP addresses are allowed.");
+            }
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "ping",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            startInfo.ArgumentList.Add("-n");
+            startInfo.ArgumentList.Add("1");
+            startInfo.ArgumentList.Add(host);
+
+            using var process = Process.Start(startInfo);
+
+            if (process == null)
+            {
+                return StatusCode(500, "Unable to start ping.");
+            }
+
+            process.WaitForExit();
+
+            return Content("Ping command executed safely.");
         }
 
         [HttpGet]
@@ -65,9 +154,45 @@ namespace GestorPacientes.Controllers
                 return View();
             }
 
-            using HttpClient client = new HttpClient();
+            if (!Uri.TryCreate(targetUrl, UriKind.Absolute, out var uri))
+            {
+                ViewBag.Error = "Invalid URL.";
+                return View();
+            }
 
-            string responseBody = await client.GetStringAsync(targetUrl);
+            if (uri.Scheme != Uri.UriSchemeHttps)
+            {
+                ViewBag.Error = "Only HTTPS URLs are allowed.";
+                return View();
+            }
+
+            if (uri.IsLoopback)
+            {
+                ViewBag.Error = "Loopback addresses are not allowed.";
+                return View();
+            }
+
+            var addresses = await Dns.GetHostAddressesAsync(uri.Host);
+
+            bool privateAddressDetected = addresses.Any(ip =>
+                IPAddress.IsLoopback(ip) ||
+                ip.Equals(IPAddress.Any) ||
+                ip.Equals(IPAddress.IPv6Any) ||
+                ip.Equals(IPAddress.None) ||
+                IsPrivateIp(ip));
+
+            if (privateAddressDetected)
+            {
+                ViewBag.Error = "Private or internal network addresses are not allowed.";
+                return View();
+            }
+
+            using HttpClient client = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+
+            string responseBody = await client.GetStringAsync(uri);
 
             ViewBag.TargetUrl = targetUrl;
             ViewBag.ResponseBody = responseBody;
@@ -79,11 +204,17 @@ namespace GestorPacientes.Controllers
         {
             try
             {
-                throw new Exception("Database error: internal path C:\\PatientManager\\Secrets\\config.json");
+                throw new Exception("Simulated application error.");
             }
             catch (Exception ex)
             {
-                return Content(ex.ToString());
+                _logger.LogError(
+                    ex,
+                    "An internal application error occurred.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An internal error occurred.");
             }
         }
 
@@ -95,7 +226,17 @@ namespace GestorPacientes.Controllers
 
         public IActionResult GoTo(string returnUrl)
         {
-            return Redirect(returnUrl);
+            if (string.IsNullOrWhiteSpace(returnUrl))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return BadRequest("External redirects are not allowed.");
         }
 
         public IActionResult SearchPreview(string q)
@@ -106,9 +247,49 @@ namespace GestorPacientes.Controllers
 
         public IActionResult DownloadFile(string fileName)
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
-            byte[] fileBytes = System.IO.File.ReadAllBytes(path);
-            return File(fileBytes, "application/octet-stream", fileName);
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest("File name is required.");
+            }
+
+            string uploadsRoot = Path.GetFullPath(
+                Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads"));
+
+            string safeFileName = Path.GetFileName(fileName);
+
+            if (!string.Equals(fileName, safeFileName, StringComparison.Ordinal))
+            {
+                return BadRequest("Invalid file name.");
+            }
+
+            string fullPath = Path.GetFullPath(
+                Path.Combine(uploadsRoot, safeFileName));
+
+            string requiredPrefix =
+                uploadsRoot.TrimEnd(Path.DirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+
+            if (!fullPath.StartsWith(
+                    requiredPrefix,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Invalid file path.");
+            }
+
+            if (!System.IO.File.Exists(fullPath))
+            {
+                return NotFound("File not found.");
+            }
+
+            byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
+
+            return File(
+                fileBytes,
+                "application/octet-stream",
+                safeFileName);
         }
 
         [HttpGet]
@@ -126,8 +307,10 @@ namespace GestorPacientes.Controllers
                 return View();
             }
 
+            string safeUsername = EscapeLdapFilterValue(username);
+
             string filter =
-                "(&(objectClass=user)(sAMAccountName=" + username + "))";
+                "(&(objectClass=user)(sAMAccountName=" + safeUsername + "))";
 
             var request = new SearchRequest(
                 "DC=example,DC=local",
@@ -138,7 +321,7 @@ namespace GestorPacientes.Controllers
             ViewBag.Username = username;
             ViewBag.Filter = request.Filter;
             ViewBag.Message =
-                "LDAP request was created using the unvalidated username.";
+                "LDAP request was created using an escaped username.";
 
             return View();
         }
@@ -148,6 +331,7 @@ namespace GestorPacientes.Controllers
         {
             return View();
         }
+
 
         [HttpPost]
         public IActionResult XmlImport(string xmlContent)
@@ -162,8 +346,8 @@ namespace GestorPacientes.Controllers
             {
                 var settings = new XmlReaderSettings
                 {
-                    DtdProcessing = DtdProcessing.Parse,
-                    XmlResolver = new XmlUrlResolver()
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null
                 };
 
                 using var stringReader = new StringReader(xmlContent);
@@ -171,7 +355,7 @@ namespace GestorPacientes.Controllers
 
                 var document = new XmlDocument
                 {
-                    XmlResolver = new XmlUrlResolver()
+                    XmlResolver = null
                 };
 
                 document.Load(xmlReader);
@@ -180,10 +364,10 @@ namespace GestorPacientes.Controllers
                 ViewBag.ParsedValue =
                     document.DocumentElement?.InnerText ?? "No value found";
             }
-            catch (Exception ex)
+            catch (XmlException)
             {
                 ViewBag.XmlContent = xmlContent;
-                ViewBag.Error = ex.Message;
+                ViewBag.Error = "Invalid or unsafe XML content.";
             }
 
             return View();
@@ -194,6 +378,7 @@ namespace GestorPacientes.Controllers
         {
             return View();
         }
+
 
         [HttpPost]
         public IActionResult DeserializeData(string jsonContent)
@@ -208,23 +393,28 @@ namespace GestorPacientes.Controllers
             {
                 var settings = new JsonSerializerSettings
                 {
-                    TypeNameHandling = TypeNameHandling.All
+                    TypeNameHandling = TypeNameHandling.None,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
                 };
 
-                object? result =
-                    JsonConvert.DeserializeObject<object>(jsonContent, settings);
+                var result =
+                    JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                        jsonContent,
+                        settings);
 
                 ViewBag.JsonContent = jsonContent;
                 ViewBag.ResultType =
                     result?.GetType().FullName ?? "No object created";
 
                 ViewBag.Result =
-                    result?.ToString() ?? "No result";
+                    result != null
+                        ? JsonConvert.SerializeObject(result)
+                        : "No result";
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
                 ViewBag.JsonContent = jsonContent;
-                ViewBag.Error = ex.Message;
+                ViewBag.Error = "Invalid JSON content.";
             }
 
             return View();
@@ -238,9 +428,9 @@ namespace GestorPacientes.Controllers
 
         [HttpPost]
         public IActionResult LoginAudit(
-            string username,
-            string password,
-            string patientId)
+     string username,
+     string password,
+     string patientId)
         {
             if (string.IsNullOrWhiteSpace(username) ||
                 string.IsNullOrWhiteSpace(password))
@@ -249,13 +439,9 @@ namespace GestorPacientes.Controllers
                 return View();
             }
 
-            // Deliberately vulnerable:
-            // sensitive authentication and patient data are written to logs.
             _logger.LogInformation(
-                "Login attempt: Username={Username}, Password={Password}, PatientId={PatientId}",
-                username,
-                password,
-                patientId);
+                "Login attempt recorded for Username={Username}",
+                username);
 
             ViewBag.Message = "Login attempt recorded.";
             ViewBag.Username = username;
@@ -270,6 +456,7 @@ namespace GestorPacientes.Controllers
             return View();
         }
 
+
         [HttpPost]
         public IActionResult EncryptPatientData(string patientData)
         {
@@ -281,47 +468,66 @@ namespace GestorPacientes.Controllers
 
             try
             {
-                byte[] key =
-                    Encoding.UTF8.GetBytes("12345678901234567890123456789012");
+                string? keyBase64 =
+                    _configuration["Encryption:Key"];
 
-                using Aes aes = Aes.Create();
+                if (string.IsNullOrWhiteSpace(keyBase64))
+                {
+                    ViewBag.Error = "Encryption key is not configured.";
+                    return View();
+                }
 
-                // Deliberately insecure cryptographic configuration.
-                aes.Key = key;
-                aes.Mode = CipherMode.ECB;
-                aes.Padding = PaddingMode.PKCS7;
+                byte[] key = Convert.FromBase64String(keyBase64);
 
-                using ICryptoTransform encryptor = aes.CreateEncryptor();
+                if (key.Length != 32)
+                {
+                    ViewBag.Error = "Encryption key must be 256 bits.";
+                    return View();
+                }
 
-                byte[] plaintextBytes =
+                byte[] plaintext =
                     Encoding.UTF8.GetBytes(patientData);
 
-                byte[] encryptedBytes =
-                    encryptor.TransformFinalBlock(
-                        plaintextBytes,
-                        0,
-                        plaintextBytes.Length);
+                byte[] nonce =
+                    RandomNumberGenerator.GetBytes(12);
+
+                byte[] ciphertext =
+                    new byte[plaintext.Length];
+
+                byte[] tag =
+                    new byte[16];
+
+                using var aesGcm =
+                    new AesGcm(key, tag.Length);
+
+                aesGcm.Encrypt(
+                    nonce,
+                    plaintext,
+                    ciphertext,
+                    tag);
+
+                byte[] combined =
+                    nonce
+                        .Concat(tag)
+                        .Concat(ciphertext)
+                        .ToArray();
 
                 ViewBag.PatientData = patientData;
                 ViewBag.EncryptedData =
-                    Convert.ToBase64String(encryptedBytes);
+                    Convert.ToBase64String(combined);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ViewBag.PatientData = patientData;
-                ViewBag.Error = ex.Message;
+                ViewBag.Error = "Unable to encrypt patient data.";
             }
 
             return View();
         }
 
-
         public IActionResult DisableCertificateValidation()
         {
-            ServicePointManager.ServerCertificateValidationCallback +=
-                (sender, certificate, chain, sslPolicyErrors) => true;
-
-            return Content("Certificate validation disabled");
+            return Content("Certificate validation uses the default secure platform policy.");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

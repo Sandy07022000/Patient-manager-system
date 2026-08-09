@@ -31,7 +31,12 @@ namespace GestorPacientes.Core.Application.Services
             user.Username = vm.Username;
             // Vulnerable baseline: password stored without hashing for security testing
             user.Password = vm.Password;
-            user.TypeUserId = (int)vm.TypeUserId;
+            if (!vm.TypeUserId.HasValue)
+            {
+                throw new ArgumentException("User role is required.");
+            }
+
+            user.TypeUserId = (int)vm.TypeUserId.Value;
 
             user = await _userRepository.AddAsync(user);
 
@@ -72,7 +77,8 @@ namespace GestorPacientes.Core.Application.Services
 
         public async Task Update(SaveUserViewModel vm)
         {
-            User user = await _userRepository.GetByIdAsync(vm.Id);
+            User user =
+                await _userRepository.GetByIdAsync(vm.Id);
 
             user.Id = vm.Id;
             user.Name = vm.Name;
@@ -80,8 +86,10 @@ namespace GestorPacientes.Core.Application.Services
             user.Phone = vm.Phone;
             user.Username = vm.Username;
             user.LastName = vm.LastName;
-            user.Password = vm.Password;
-            user.TypeUserId = (int)vm.TypeUserId;
+            user.TypeUserId = (int)vm.TypeUserId.Value;
+
+            // Do not directly overwrite the stored password here.
+            // Password changes should use a dedicated secure method.
 
             await _userRepository.UpdateAsync(user);
         }

@@ -64,25 +64,41 @@
                         <td class="text-end align-items-center py-3">
                             @if (appointment.status == Status.PendingConsultation)
                             {
-                                <a class="btn btn-secondary btn-sm" asp-controller="Appointment" asp-action="Consult" asp-route-appointmentId=@appointment.Id>
-                                    <i class="bi bi-person-lines-fill"></i>
-                                    Consultar
-                                </a>
+                            <a class="btn btn-secondary btn-sm" asp-controller="Appointment" asp-action="Consult" asp-route-appointmentId=@appointment.Id>
+                                <i class="bi bi-person-lines-fill"></i>
+                                Consultar
+                            </a>
                             }
                             else if (appointment.status == Status.PendingResults)
                             {
-                                <a class="btn btn-secondary btn-sm" asp-controller="Appointment" asp-action="CheckResults" asp-route-appointmentId=@appointment.Id>
-                                    <i class="bi bi-clipboard2-pulse-fill"></i>
-                                    Consultar resultados
-                                </a>
+                            <a asp-controller="Appointment"
+                               asp-action="CheckResults"
+                               asp-route-AppointmentId="@appointment.Id"
+                               class="btn btn-warning btn-sm">
+                                Consultar resultados
+                            </a>
+
+                            <form asp-controller="Appointment"
+                                  asp-action="CompleteAppointment"
+                                  asp-route-id="@appointment.Id"
+                                  method="post"
+                                  class="d-inline">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-success btn-sm">
+                                    Completar
+                                </button>
+                            </form>
                             }
                             else if (appointment.status == Status.Completed)
                             {
-                                <a class="btn btn-secondary btn-sm" asp-controller="Appointment" asp-action="CheckResults" asp-route-id=@appointment.Id
-                                 asp-route-status=@appointment.status>
-                                    <i class="bi bi-file-earmark-medical-fill"></i>
-                                    Ver Resultados
-                                </a>
+                            <a class="btn btn-secondary btn-sm" asp-controller="Appointment" asp-action="CheckResults" asp-route-id=@appointment.Id
+                               asp-route-status=@appointment.status>
+                                <i class="bi bi-file-earmark-medical-fill"></i>
+                                Ver Resultados
+                            </a>
                             }
                             <a class="btn btn-outline-danger btn-sm" asp-controller="Appointment" asp-action="Delete" asp-route-id=@appointment.Id>
                                 <i class="bi bi-trash-fill"></i>

@@ -34,7 +34,7 @@ namespace GestorPacientes.Core.Application.ViewModels.Users
         [Required(ErrorMessage = "El {0} es requerido")]
         [Display(Name = "Telefono")]
         public string? Phone { get; set; }
-        [Range(0, maximum: int.MaxValue, ErrorMessage = "Debe seleccionar un {0}")]
+        [Required(ErrorMessage = "Debe seleccionar un tipo de usuario")]
         [Display(Name = "Tipo de usuario")]
         public Roles? TypeUserId { get; set; }
     }

@@ -32,21 +32,8 @@
           asp-append-version="true" />
 
     <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-
-    <link rel="stylesheet"
           href="~/css/custom.css"
           asp-append-version="true" />
-
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com" />
-
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossorigin />
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
-          rel="stylesheet" />
 </head>
 
 <body>
@@ -75,7 +62,6 @@
                        asp-controller="@(currentUser != null ? "Home" : "User")"
                        asp-action="@(currentUser != null ? "Index" : "Login")">
 
-                        <i class="bi bi-hospital-fill"></i>
                         Gestor Pacientes
                     </a>
 
@@ -92,7 +78,6 @@
                             </a>
                         </li>
 
-                        @* Added for reflected-XSS testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -102,7 +87,6 @@
                             </a>
                         </li>
 
-                        @* Added for SSRF testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -112,7 +96,6 @@
                             </a>
                         </li>
 
-                        @* Added for redirect test testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -122,7 +105,6 @@
                             </a>
                         </li>
 
-                        @* Added for ldap testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -132,7 +114,6 @@
                             </a>
                         </li>
 
-                        @* Added for xml import testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -142,7 +123,6 @@
                             </a>
                         </li>
 
-                        @* Added for json import testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -152,7 +132,6 @@
                             </a>
                         </li>
 
-                        @* Added for login audit testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -162,7 +141,6 @@
                             </a>
                         </li>
 
-                        @* Added for data encrypt testing *@
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
@@ -239,6 +217,7 @@
                             </a>
                         </li>
                             }
+
                     </ul>
 
                     <div class="col-lg-3 d-flex justify-content-lg-end">
@@ -246,6 +225,7 @@
                                  model="@currentUser" />
                     </div>
                     }
+
                 </div>
             </div>
         </nav>
@@ -256,11 +236,13 @@
               class="pb-3">
 
             @RenderBody()
+
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
+
             &copy; 2024 - GestorPacientes -
 
             <a asp-area=""
@@ -268,6 +250,7 @@
                asp-action="Privacy">
                 Privacy
             </a>
+
         </div>
     </footer>
 

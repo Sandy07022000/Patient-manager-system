@@ -57,8 +57,6 @@ namespace GestorPacientes.Controllers
                 ModelState.AddModelError(nameof(userVm), "Datos de acceso incorrecto");
             }
 
-            Console.WriteLine($"User password submitted: {userVm.Password}");
-
             return View(vm);
         }
 
@@ -79,45 +77,63 @@ namespace GestorPacientes.Controllers
             return View(list);
         }
 
+        [HttpGet]
         public IActionResult Register()
         {
-            if (!_validateUserSession.HasUser() || userViewModel.TypeUserId != Roles.Admin)
+            // Public registration has been disabled.
+            // Users are created by an authenticated administrator.
+            return RedirectToAction("Login");
+        }
+
+        [HttpPost]
+        public IActionResult Register(SaveUserViewModel userVm)
+        {
+            // Block direct POST requests to the old
+            // public registration endpoint.
+            return Forbid();
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            if (!_validateUserSession.HasUser() ||
+                userViewModel?.TypeUserId != Roles.Admin)
             {
-                return View("Register", new SaveUserViewModel());
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "Index"
+                });
             }
 
             return View("SaveUser", new SaveUserViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(SaveUserViewModel userVm)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(userVm);
-            }
-
-            userVm.TypeUserId = Roles.Admin;
-
-            await _userService.Add(userVm);
-            return RedirectToRoute(new { controller = "User", action = "Login" });
-        }
-
-        [HttpPost]
         public async Task<IActionResult> Create(SaveUserViewModel userVm)
         {
-            if (!_validateUserSession.HasUser() || userViewModel.TypeUserId != Roles.Admin)
+            if (!_validateUserSession.HasUser() ||
+                userViewModel?.TypeUserId != Roles.Admin)
             {
-                return RedirectToRoute(new { controller = "Home", action = "Index" });
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "Index"
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return View(userVm);
+                return View("SaveUser", userVm);
             }
 
             await _userService.Add(userVm);
-            return RedirectToRoute(new { controller = "User", action = "Index" });
+
+            return RedirectToRoute(new
+            {
+                controller = "User",
+                action = "Index"
+            });
         }
 
         public async Task<IActionResult> Edit(int id)

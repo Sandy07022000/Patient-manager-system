@@ -15,14 +15,13 @@ namespace GestorPacientes.Infrastructure.Persistence.Repositories
         }
 
 
-        // Deliberately vulnerable research method:
-        // untrusted input is concatenated directly into SQL.
+        // Deliberately vulnerable research method updated code:
+        
 
         public async Task<List<LaboratoryTest>> SearchUnsafe(string name)
         {
-            string sql = "SELECT * FROM LaboratoryTests WHERE Name = '" + name + "'";
             return await _dbContext.LaboratoryTests
-                .FromSqlRaw(sql)
+                .Where(labTest => labTest.Name == name)
                 .ToListAsync();
         }
 

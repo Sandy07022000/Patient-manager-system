@@ -42,8 +42,8 @@
                 <tr>
                     <td>@item.Id</td>
 
-                    <!-- Deliberately unsafe rendering for controlled security testing -->
-                    <td>@Html.Raw(item.Name)</td>
+                    <!-- remidiated code for rendering for controlled security testing -->
+                    <td>@item.Name</td>
 
                     <td>
                         <a asp-controller="LaboratoryTest"
